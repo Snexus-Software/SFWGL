@@ -20,7 +20,13 @@ copyright (c) Gavin Kellam (Snexus Software)
 #error Platform WIN32 or linux is only supported!
 #endif
 
+
+#pragma comment(lib, "glew32.lib")
+#pragma comment(lib, "glfw3.lib")
+#pragma comment(lib, "opengl32.lib")
+
 #include "GL/glew.h"
+
 //#include "glad.h"
 #include "dirent.h"
 #include "miniaudio.h"
@@ -28,7 +34,5 @@ copyright (c) Gavin Kellam (Snexus Software)
 #include "External/GLFW/glfw3.h"
 
 
-#pragma comment(lib, "glew32.lib")
-#pragma comment(lib, "glfw3.lib")
 
 #endif // !SNEXUS_GLFW_HANDLER

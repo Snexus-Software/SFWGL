@@ -36,6 +36,8 @@ Copyright (C) 2019  Snexus Software
 using  std::cout;
 using  std::endl;
 
+
+
 typedef struct File {
     _STD vector <_STD string> Data = {};
     int FileSize = 0;

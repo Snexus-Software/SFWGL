@@ -294,6 +294,9 @@ public:
 
 };
 
+// world position vector to quaternion
+typedef Vector4 Quaternion;
+
 // holds colors in int format (0 - 255)
 typedef struct Colori {
 	int r = 0,

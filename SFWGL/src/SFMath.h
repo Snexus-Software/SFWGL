@@ -49,6 +49,10 @@ Copyright (C) 2019  Snexus Software
 #define Vector3ToFloat(vec) (Vector3ToFloatV(vec).v)
 #endif
 
+#define MAX_BATCH_BUFFERING                  1      // Max number of buffers for batching (multi-buffering)
+#define MAX_MATRIX_STACK_SIZE               32      // Max size of Matrix stack
+#define MAX_DRAWCALL_REGISTERED            256      // Max draws by state changes (mode, texture)
+
 
 // Matrix type (OpenGL style 4x4 - right handed, column major)
 typedef struct Matrix {
@@ -58,8 +62,18 @@ typedef struct Matrix {
 	float m3, m7, m11, m15;
 } Matrix;
 
-
-static Matrix* currentMatrix = NULL;
+// Dynamic vertex buffers (position + texcoords + colors + indices arrays)
+typedef struct DynamicBuffer {
+    int vCounter;               // vertex position counter to process (and draw) from full buffer
+    int tcCounter;              // vertex texcoord counter to process (and draw) from full buffer
+    int cCounter;               // vertex color counter to process (and draw) from full buffer
+    float* vertices;            // vertex position (XYZ - 3 components per vertex) (shader-location = 0)
+    float* texcoords;           // vertex texture coordinates (UV - 2 components per vertex) (shader-location = 1)
+    unsigned char* colors;      // vertex colors (RGBA - 4 components per vertex) (shader-location = 3)
+    unsigned int* indices;      // vertex indices (in case vertex data comes indexed) (6 indices per quad)
+    unsigned int vaoId;         // OpenGL Vertex Array Object id
+    unsigned int vboId[4];      // OpenGL Vertex Buffer Objects id (4 types of vertex data)
+} DynamicBuffer;
 
 typedef struct float3 { float v[3]; } float3;
 typedef struct float16 { float v[16]; } float16;
@@ -777,11 +791,11 @@ typedef struct float16 { float v[16]; } float16;
 {
     Matrix result = { 0 };
 
-    float rl = (float)(right - left);
+    float SFGL = (float)(right - left);
     float tb = (float)(top - bottom);
     float fn = (float)(far - near);
 
-    result.m0 = ((float)near * 2.0f) / rl;
+    result.m0 = ((float)near * 2.0f) / SFGL;
     result.m1 = 0.0f;
     result.m2 = 0.0f;
     result.m3 = 0.0f;
@@ -791,7 +805,7 @@ typedef struct float16 { float v[16]; } float16;
     result.m6 = 0.0f;
     result.m7 = 0.0f;
 
-    result.m8 = ((float)right + (float)left) / rl;
+    result.m8 = ((float)right + (float)left) / SFGL;
     result.m9 = ((float)top + (float)bottom) / tb;
     result.m10 = -((float)far + (float)near) / fn;
     result.m11 = -1.0f;
@@ -820,11 +834,11 @@ typedef struct float16 { float v[16]; } float16;
 {
     Matrix result = { 0 };
 
-    float rl = (float)(right - left);
+    float SFGL = (float)(right - left);
     float tb = (float)(top - bottom);
     float fn = (float)(far - near);
 
-    result.m0 = 2.0f / rl;
+    result.m0 = 2.0f / SFGL;
     result.m1 = 0.0f;
     result.m2 = 0.0f;
     result.m3 = 0.0f;
@@ -836,7 +850,7 @@ typedef struct float16 { float v[16]; } float16;
     result.m9 = 0.0f;
     result.m10 = -2.0f / fn;
     result.m11 = 0.0f;
-    result.m12 = -((float)left + (float)right) / rl;
+    result.m12 = -((float)left + (float)right) / SFGL;
     result.m13 = -((float)top + (float)bottom) / tb;
     result.m14 = -((float)far + (float)near) / fn;
     result.m15 = 1.0f;
@@ -902,3 +916,368 @@ typedef struct float16 { float v[16]; } float16;
 
     return buffer;
 }
+
+ //----------------------------------------------------------------------------------
+// Module Functions Definition - Quaternion math
+//----------------------------------------------------------------------------------
+
+// Returns identity quaternion
+ Quaternion QuaternionIdentity(void)
+ {
+     Quaternion result = { 0.0f, 0.0f, 0.0f, 1.0f };
+     return result;
+ }
+
+ // Computes the length of a quaternion
+ float QuaternionLength(Quaternion q)
+ {
+     float result = (float)sqrt(q.x * q.x + q.y * q.y + q.z * q.z + q.w * q.w);
+     return result;
+ }
+
+ // Normalize provided quaternion
+ Quaternion QuaternionNormalize(Quaternion q)
+ {
+     Quaternion result = { 0 };
+
+     float length, ilength;
+     length = QuaternionLength(q);
+     if (length == 0.0f) length = 1.0f;
+     ilength = 1.0f / length;
+
+     result.x = q.x * ilength;
+     result.y = q.y * ilength;
+     result.z = q.z * ilength;
+     result.w = q.w * ilength;
+
+     return result;
+ }
+
+ // Invert provided quaternion
+ Quaternion QuaternionInvert(Quaternion q)
+ {
+     Quaternion result = q;
+     float length = QuaternionLength(q);
+     float lengthSq = length * length;
+
+     if (lengthSq != 0.0)
+     {
+         float i = 1.0f / lengthSq;
+
+         result.x *= -i;
+         result.y *= -i;
+         result.z *= -i;
+         result.w *= i;
+     }
+
+     return result;
+ }
+
+ // Calculate two quaternion multiplication
+ Quaternion QuaternionMultiply(Quaternion q1, Quaternion q2)
+ {
+     Quaternion result = { 0 };
+
+     float qax = q1.x, qay = q1.y, qaz = q1.z, qaw = q1.w;
+     float qbx = q2.x, qby = q2.y, qbz = q2.z, qbw = q2.w;
+
+     result.x = qax * qbw + qaw * qbx + qay * qbz - qaz * qby;
+     result.y = qay * qbw + qaw * qby + qaz * qbx - qax * qbz;
+     result.z = qaz * qbw + qaw * qbz + qax * qby - qay * qbx;
+     result.w = qaw * qbw - qax * qbx - qay * qby - qaz * qbz;
+
+     return result;
+ }
+
+ // Calculate linear interpolation between two quaternions
+ Quaternion QuaternionLerp(Quaternion q1, Quaternion q2, float amount)
+ {
+     Quaternion result = { 0 };
+
+     result.x = q1.x + amount * (q2.x - q1.x);
+     result.y = q1.y + amount * (q2.y - q1.y);
+     result.z = q1.z + amount * (q2.z - q1.z);
+     result.w = q1.w + amount * (q2.w - q1.w);
+
+     return result;
+ }
+
+ // Calculate slerp-optimized interpolation between two quaternions
+ Quaternion QuaternionNlerp(Quaternion q1, Quaternion q2, float amount)
+ {
+     Quaternion result = QuaternionLerp(q1, q2, amount);
+     result = QuaternionNormalize(result);
+
+     return result;
+ }
+
+ // Calculates spherical linear interpolation between two quaternions
+ Quaternion QuaternionSlerp(Quaternion q1, Quaternion q2, float amount)
+ {
+     Quaternion result = { 0 };
+
+     float cosHalfTheta = q1.x * q2.x + q1.y * q2.y + q1.z * q2.z + q1.w * q2.w;
+
+     if (fabs(cosHalfTheta) >= 1.0f) result = q1;
+     else if (cosHalfTheta > 0.95f) result = QuaternionNlerp(q1, q2, amount);
+     else
+     {
+         float halfTheta = (float)acos(cosHalfTheta);
+         float sinHalfTheta = (float)sqrt(1.0f - cosHalfTheta * cosHalfTheta);
+
+         if (fabs(sinHalfTheta) < 0.001f)
+         {
+             result.x = (q1.x * 0.5f + q2.x * 0.5f);
+             result.y = (q1.y * 0.5f + q2.y * 0.5f);
+             result.z = (q1.z * 0.5f + q2.z * 0.5f);
+             result.w = (q1.w * 0.5f + q2.w * 0.5f);
+         }
+         else
+         {
+             float ratioA = sinf((1 - amount) * halfTheta) / sinHalfTheta;
+             float ratioB = sinf(amount * halfTheta) / sinHalfTheta;
+
+             result.x = (q1.x * ratioA + q2.x * ratioB);
+             result.y = (q1.y * ratioA + q2.y * ratioB);
+             result.z = (q1.z * ratioA + q2.z * ratioB);
+             result.w = (q1.w * ratioA + q2.w * ratioB);
+         }
+     }
+
+     return result;
+ }
+
+ // Calculate quaternion based on the rotation from one vector to another
+ Quaternion QuaternionFromVector3ToVector3(Vector3 from, Vector3 to)
+ {
+     Quaternion result = { 0 };
+
+     float cos2Theta = Vector3DotProduct(from, to);
+     Vector3 cross = Vector3CrossProduct(from, to);
+
+     result.x = cross.x;
+     result.y = cross.y;
+     result.z = cross.y;
+     result.w = 1.0f + cos2Theta;     // NOTE: Added QuaternioIdentity()
+
+     // Normalize to essentially nlerp the original and identity to 0.5
+     result = QuaternionNormalize(result);
+
+     // Above lines are equivalent to:
+     //Quaternion result = QuaternionNlerp(q, QuaternionIdentity(), 0.5f);
+
+     return result;
+ }
+
+ // Returns a quaternion for a given rotation matrix
+ Quaternion QuaternionFromMatrix(Matrix mat)
+ {
+     Quaternion result = { 0 };
+
+     float trace = MatrixTrace(mat);
+
+     if (trace > 0.0f)
+     {
+         float s = (float)sqrt(trace + 1) * 2.0f;
+         float invS = 1.0f / s;
+
+         result.w = s * 0.25f;
+         result.x = (mat.m6 - mat.m9) * invS;
+         result.y = (mat.m8 - mat.m2) * invS;
+         result.z = (mat.m1 - mat.m4) * invS;
+     }
+     else
+     {
+         float m00 = mat.m0, m11 = mat.m5, m22 = mat.m10;
+
+         if (m00 > m11&& m00 > m22)
+         {
+             float s = (float)sqrt(1.0f + m00 - m11 - m22) * 2.0f;
+             float invS = 1.0f / s;
+
+             result.w = (mat.m6 - mat.m9) * invS;
+             result.x = s * 0.25f;
+             result.y = (mat.m4 + mat.m1) * invS;
+             result.z = (mat.m8 + mat.m2) * invS;
+         }
+         else if (m11 > m22)
+         {
+             float s = (float)sqrt(1.0f + m11 - m00 - m22) * 2.0f;
+             float invS = 1.0f / s;
+
+             result.w = (mat.m8 - mat.m2) * invS;
+             result.x = (mat.m4 + mat.m1) * invS;
+             result.y = s * 0.25f;
+             result.z = (mat.m9 + mat.m6) * invS;
+         }
+         else
+         {
+             float s = (float)sqrt(1.0f + m22 - m00 - m11) * 2.0f;
+             float invS = 1.0f / s;
+
+             result.w = (mat.m1 - mat.m4) * invS;
+             result.x = (mat.m8 + mat.m2) * invS;
+             result.y = (mat.m9 + mat.m6) * invS;
+             result.z = s * 0.25f;
+         }
+     }
+
+     return result;
+ }
+
+ // Returns a matrix for a given quaternion
+ Matrix QuaternionToMatrix(Quaternion q)
+ {
+     Matrix result = { 0 };
+
+     float x = q.x, y = q.y, z = q.z, w = q.w;
+
+     float x2 = x + x;
+     float y2 = y + y;
+     float z2 = z + z;
+
+     float length = QuaternionLength(q);
+     float lengthSquared = length * length;
+
+     float xx = x * x2 / lengthSquared;
+     float xy = x * y2 / lengthSquared;
+     float xz = x * z2 / lengthSquared;
+
+     float yy = y * y2 / lengthSquared;
+     float yz = y * z2 / lengthSquared;
+     float zz = z * z2 / lengthSquared;
+
+     float wx = w * x2 / lengthSquared;
+     float wy = w * y2 / lengthSquared;
+     float wz = w * z2 / lengthSquared;
+
+     result.m0 = 1.0f - (yy + zz);
+     result.m1 = xy - wz;
+     result.m2 = xz + wy;
+     result.m3 = 0.0f;
+     result.m4 = xy + wz;
+     result.m5 = 1.0f - (xx + zz);
+     result.m6 = yz - wx;
+     result.m7 = 0.0f;
+     result.m8 = xz - wy;
+     result.m9 = yz + wx;
+     result.m10 = 1.0f - (xx + yy);
+     result.m11 = 0.0f;
+     result.m12 = 0.0f;
+     result.m13 = 0.0f;
+     result.m14 = 0.0f;
+     result.m15 = 1.0f;
+
+     return result;
+ }
+
+ // Returns rotation quaternion for an angle and axis
+ // NOTE: angle must be provided in radians
+Quaternion QuaternionFromAxisAngle(Vector3 axis, float angle)
+ {
+     Quaternion result = { 0.0f, 0.0f, 0.0f, 1.0f };
+
+     if (Vector3Length(axis) != 0.0f)
+
+         angle *= 0.5f;
+
+     axis = Vector3Normalize(axis);
+
+     float sinres = sinf(angle);
+     float cosres = cosf(angle);
+
+     result.x = axis.x * sinres;
+     result.y = axis.y * sinres;
+     result.z = axis.z * sinres;
+     result.w = cosres;
+
+     result = QuaternionNormalize(result);
+
+     return result;
+ }
+
+ // Returns the rotation angle and axis for a given quaternion
+ void QuaternionToAxisAngle(Quaternion q, Vector3* outAxis, float* outAngle)
+ {
+     if (fabs(q.w) > 1.0f) q = QuaternionNormalize(q);
+
+     Vector3 resAxis = { 0.0f, 0.0f, 0.0f };
+     float resAngle = 0.0f;
+
+     resAngle = 2.0f * (float)acos(q.w);
+     float den = (float)sqrt(1.0f - q.w * q.w);
+
+     if (den > 0.0001f)
+     {
+         resAxis.x = q.x / den;
+         resAxis.y = q.y / den;
+         resAxis.z = q.z / den;
+     }
+     else
+     {
+         // This occurs when the angle is zero.
+         // Not a problem: just set an arbitrary normalized axis.
+         resAxis.x = 1.0f;
+     }
+
+     *outAxis = resAxis;
+     *outAngle = resAngle;
+ }
+
+ // Returns he quaternion equivalent to Euler angles
+Quaternion QuaternionFromEuler(float roll, float pitch, float yaw)
+ {
+     Quaternion q = { 0 };
+
+     float x0 = cosf(roll * 0.5f);
+     float x1 = sinf(roll * 0.5f);
+     float y0 = cosf(pitch * 0.5f);
+     float y1 = sinf(pitch * 0.5f);
+     float z0 = cosf(yaw * 0.5f);
+     float z1 = sinf(yaw * 0.5f);
+
+     q.x = x1 * y0 * z0 - x0 * y1 * z1;
+     q.y = x0 * y1 * z0 + x1 * y0 * z1;
+     q.z = x0 * y0 * z1 - x1 * y1 * z0;
+     q.w = x0 * y0 * z0 + x1 * y1 * z1;
+
+     return q;
+ }
+
+ // Return the Euler angles equivalent to quaternion (roll, pitch, yaw)
+ // NOTE: Angles are returned in a Vector3 struct in degrees
+ Vector3 QuaternionToEuler(Quaternion q)
+ {
+     Vector3 result = { 0 };
+
+     // roll (x-axis rotation)
+     float x0 = 2.0f * (q.w * q.x + q.y * q.z);
+     float x1 = 1.0f - 2.0f * (q.x * q.x + q.y * q.y);
+     result.x = atan2f(x0, x1) * RAD2DEG;
+
+     // pitch (y-axis rotation)
+     float y0 = 2.0f * (q.w * q.y - q.z * q.x);
+     y0 = y0 > 1.0f ? 1.0f : y0;
+     y0 = y0 < -1.0f ? -1.0f : y0;
+     result.y = asinf(y0) * RAD2DEG;
+
+     // yaw (z-axis rotation)
+     float z0 = 2.0f * (q.w * q.z + q.x * q.y);
+     float z1 = 1.0f - 2.0f * (q.y * q.y + q.z * q.z);
+     result.z = atan2f(z0, z1) * RAD2DEG;
+
+     return result;
+ }
+
+ // Transform a quaternion given a transformation matrix
+ Quaternion QuaternionTransform(Quaternion q, Matrix mat)
+ {
+     Quaternion result = { 0 };
+
+     result.x = mat.m0 * q.x + mat.m4 * q.y + mat.m8 * q.z + mat.m12 * q.w;
+     result.y = mat.m1 * q.x + mat.m5 * q.y + mat.m9 * q.z + mat.m13 * q.w;
+     result.z = mat.m2 * q.x + mat.m6 * q.y + mat.m10 * q.z + mat.m14 * q.w;
+     result.w = mat.m3 * q.x + mat.m7 * q.y + mat.m11 * q.z + mat.m15 * q.w;
+
+     return result;
+ }
