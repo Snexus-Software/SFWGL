@@ -91,6 +91,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalOptions>/FORCE:MULTIPLE %(AdditionalOptions)</AdditionalOptions>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -139,10 +140,14 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Source.cpp" />
+    <ClCompile Include="src\Camera.cpp" />
+    <ClCompile Include="src\Display.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\Camera.h" />
     <ClInclude Include="src\core.h" />
     <ClInclude Include="src\Debug.h" />
+    <ClInclude Include="src\Display.h" />
     <ClInclude Include="src\FileW.h" />
     <ClInclude Include="src\SFGL.h" />
     <ClInclude Include="src\SFMath.h" />

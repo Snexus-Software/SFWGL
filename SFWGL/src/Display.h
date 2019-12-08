@@ -24,9 +24,42 @@ Copyright (C) 2019  Snexus Software
 // ============== MAIN LIB PACKAGING ABSTRACTION LAYER ============== \\
 
 #include "Template.h"
-#include "SFWGL.h"
 #include "Vector.h"
-#include "SFMath.h"
-#include "Debug.h"
-#include "Camera.h"
-#include "Display.h"
+
+#define CLOSE_MAIN     \
+    exit(1);           \
+    return 0;          \
+
+
+class Display
+{
+private:
+    std::chrono::steady_clock::time_point LastFrameTime = std::chrono::high_resolution_clock::now();
+    std::chrono::steady_clock::time_point NewFrameTime = std::chrono::high_resolution_clock::now();
+    void InitDisplay();
+
+public:
+    Vector2 Size;
+    GLFWwindow* __window;
+    const char* WindowName = "NULL NAME";
+
+
+    // initing
+    Display(int SizeX, int SizeY, const char * WindowName);
+    ~Display();
+
+    // basic drawing
+    void StartDrawing();
+    void EndDrawing();
+
+    // Get commands 
+    bool WindowShouldClose();
+    void DisableCursor();
+    void EnableCursor();
+    bool IsKeyDown(int key);
+    Vector2 GetMousePos();
+    int GetFPS();
+
+
+};
+
