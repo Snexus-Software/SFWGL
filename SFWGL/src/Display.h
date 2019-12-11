@@ -51,6 +51,7 @@ public:
     // basic drawing
     void StartDrawing();
     void EndDrawing();
+  
 
     // Get commands 
     bool WindowShouldClose();

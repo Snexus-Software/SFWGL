@@ -30,3 +30,4 @@ Copyright (C) 2019  Snexus Software
 #include "Debug.h"
 #include "Camera.h"
 #include "Display.h"
+#include "Shader.h"

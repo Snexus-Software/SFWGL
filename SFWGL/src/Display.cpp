@@ -24,6 +24,7 @@ Copyright (C) 2019  Snexus Software
 // ============== MAIN LIB PACKAGING ABSTRACTION LAYER ============== \\
 
 #include "Display.h"
+#include "Debug.h"
 
 void Display::InitDisplay() {
 	if (!glfwInit()) {
@@ -41,6 +42,8 @@ void Display::InitDisplay() {
 
 	glfwMakeContextCurrent(__window);
 	glfwSwapInterval(1);
+
+	displayout(D_INFO, "Display Ready!");
 }
 
  // initing

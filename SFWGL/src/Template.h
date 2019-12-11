@@ -23,6 +23,7 @@ Copyright (C) 2019  Snexus Software
 
 // ============== LIB INCLUDE ABSTRACTION LAYER ============== \\
 
+// Prepackaged packages for main use with the external system
 #include <iostream>
 #include <fstream>
 #include <vector>
@@ -33,12 +34,16 @@ Copyright (C) 2019  Snexus Software
 #include <chrono>
 #include <math.h> 
 #include <sstream>
+
+// Externals 
 #include "external/glm/glm.hpp"
 #include "external/glm/gtx/transform.hpp"
+#include "external/glm/trigonometric.hpp"
 
+// GLFW, GLEW, opengl32 Linker lib, Dll/lib needs to be in the source dir
 #include "external/SGL.h"
 
-
+// Win32 libs not for linux or cannot compile on linux
 #ifdef  _WIN32
 #include <conio.h>
 #include <thread>
@@ -48,7 +53,11 @@ Copyright (C) 2019  Snexus Software
 #include <termios.h>
 #include <pthread>
 #include <unistd.h>
+#error x86 WIN32 build only!
+
 #endif // __linux
+
+
 
 /*===================================================================================================================================
 

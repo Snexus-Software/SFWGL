@@ -23,14 +23,11 @@
     <ClCompile Include="src\Display.cpp">
       <Filter>Classes</Filter>
     </ClCompile>
+    <ClCompile Include="src\Shader.cpp">
+      <Filter>Classes</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\core.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\SFGL.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\SFWGL.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -55,5 +52,14 @@
     <ClInclude Include="src\Display.h">
       <Filter>Classes</Filter>
     </ClInclude>
+    <ClInclude Include="resource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Shader.h">
+      <Filter>Classes</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="SFWGL.rc" />
   </ItemGroup>
 </Project>

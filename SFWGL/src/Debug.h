@@ -79,12 +79,11 @@ _STD string debugstring[] = { "NULL", "LOG", "FILE", "DEBUG", "ERROR", "INFO", "
 ColorM::Modifier debugcolor[] = { defM, blueM, greenM, redM, redM, magentaM, yellowM };
 
 
-
 // displays out the log
-void displayout(int msgType, const char* text, ...)
+inline void displayout(int msgType, const char* text, ...)
 {
 	std::cout << debugcolor[msgType];
-
+	
 	va_list args;
 	va_start(args, text);
 	fprintf(stdout, (debugstring[msgType] + ": ").c_str());
@@ -97,5 +96,13 @@ void displayout(int msgType, const char* text, ...)
 
 }
 
+// Defining Helpful macros
+#define FOR(varname, iterations) for (int varname = 0; varname < iterations; varname++)
+#define xstr(x) str(x)
+#define str(x) #x
+#define glue(x, y) x ## y
+
 
 #endif // !Debug_H_SENXUS
+
+
