@@ -143,7 +143,8 @@
     <ClCompile Include="Source.cpp" />
     <ClCompile Include="src\Camera.cpp" />
     <ClCompile Include="src\Display.cpp" />
-    <ClCompile Include="src\Shader.cpp" />
+    <ClCompile Include="src\LShader.cpp" />
+    <ClCompile Include="src\ShaderCL.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="resource.h" />
@@ -151,9 +152,10 @@
     <ClInclude Include="src\Debug.h" />
     <ClInclude Include="src\Display.h" />
     <ClInclude Include="src\FileW.h" />
+    <ClInclude Include="src\LShader.h" />
     <ClInclude Include="src\SFMath.h" />
     <ClInclude Include="src\SFWGL.h" />
-    <ClInclude Include="src\Shader.h" />
+    <ClInclude Include="src\ShaderCL.h" />
     <ClInclude Include="src\Template.h" />
     <ClInclude Include="src\Vector.h" />
   </ItemGroup>

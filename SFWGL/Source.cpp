@@ -5,10 +5,10 @@ using namespace std;
 
 int main() {
 	Display display(480, 480, "My window");
-	LShader shader("shader.glsl");
+	LShader Lshader("shader.glsl");
 
-	shader.CompileShader(GL_FRAGMENT_SHADER);
-	shader.Bind();
+	Lshader.LCompileShader(GL_FRAGMENT_SHADER);
+	Lshader.LBind();
 
 	while (!display.WindowShouldClose()) {
 		display.StartDrawing();

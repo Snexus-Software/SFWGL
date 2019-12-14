@@ -25,6 +25,8 @@ Copyright (C) 2019  Snexus Software
 
 #include "Template.h"
 #include "FileW.h"
+#include "Debug.h"
+#include "Vector.h"
 
 
 // This shader class can only load on shader at a time, you need more classes for more shaders
@@ -34,26 +36,26 @@ private:
 	// Shader file location and file contents 
 	File shaderFile;
 
-	// misc
-	int ShaderId = NULL; // We are null pointing this so we dont have a pre-undefined
-	int ProgramId = NULL;
 
 public:
+
+	double LShaderId;
+	GLuint LProgramId;
 
 	// basic constuctors for initing the main class
 	LShader(std::string FileName);
 	
 	
 	// Loading shader
-	void LoadShader(std::string FileName);
+	void LShaderFromFile(std::string FileName);
 
 	// compiling shader
-	void CompileShader(GLenum shadertype);
+	void LCompileShader(GLenum shadertype);
 
 	// misc
-	void Bind();
-	void UnBind();
-	int GetProgramID();
+	void LBind();
+	void LUnBind();
+	int LGetProgramID();
 
 	// Printing the log
 	void PrintProgramLog();

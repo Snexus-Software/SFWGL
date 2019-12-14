@@ -24,10 +24,36 @@ Copyright (C) 2019  Snexus Software
 // ============== MAIN LIB PACKAGING ABSTRACTION LAYER ============== \\
 
 #include "Template.h"
-#include "SFWGL.h"
-#include "Vector.h"
-#include "SFMath.h"
-#include "Debug.h"
-#include "Camera.h"
-#include "Display.h"
-#include "LShader.h"
+#include "FileW.h"
+
+
+class ShaderCL
+{
+private:
+
+    File file;
+
+    float ShaderCLId = 0;
+    float ShaderCLId = 0;
+
+    void LogProgram();
+    void LogShader();
+
+public:
+
+    // loading the shader
+    ShaderCL(std::string);
+    void load(std::string);
+
+    // compile the shader
+    void compile();
+    void bind();
+    void unbind();
+    
+
+
+
+
+
+};
+

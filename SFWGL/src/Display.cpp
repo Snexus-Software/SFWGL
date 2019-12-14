@@ -56,10 +56,6 @@ Display::Display(int SizeX, int SizeY, const char* WindowName = "NULL NAME") {
 Display::~Display() {
 	glfwDestroyWindow(__window);
 	glfwTerminate();
-
-	free(&Size);
-	free(&WindowName);
-	free(&__window);
 }
 
 // basic drawing

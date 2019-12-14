@@ -23,7 +23,10 @@
     <ClCompile Include="src\Display.cpp">
       <Filter>Classes</Filter>
     </ClCompile>
-    <ClCompile Include="src\Shader.cpp">
+    <ClCompile Include="src\LShader.cpp">
+      <Filter>Classes</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ShaderCL.cpp">
       <Filter>Classes</Filter>
     </ClCompile>
   </ItemGroup>
@@ -55,7 +58,10 @@
     <ClInclude Include="resource.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Shader.h">
+    <ClInclude Include="src\LShader.h">
+      <Filter>Classes</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ShaderCL.h">
       <Filter>Classes</Filter>
     </ClInclude>
   </ItemGroup>

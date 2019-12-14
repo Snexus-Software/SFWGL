@@ -23,8 +23,7 @@ Copyright (C) 2019  Snexus Software
 
 // ============== MAIN LIB PACKAGING ABSTRACTION LAYER ============== \\
 
-#include "Shader.h"
-
+#include "LShader.h"
 
 
 
@@ -33,102 +32,105 @@ LShader::LShader(std::string FileName) {
 	this->shaderFile = GetF(FileName);
 
 	if (this->shaderFile.Data.size() > 0) {
-		displayout(D_INFO, "Loaded in to Shader class");
+		displayout(D_INFO, "Loaded in to Shader obj");
 	}
 }
 
 
 // Loading shader
-void LShader::LoadShader(std::string FileName) {
+void LShader::LShaderFromFile(std::string FileName) {
 	this->shaderFile = GetF(FileName);
 
 	if (this->shaderFile.Data.size() > 0)
-		displayout(D_INFO, "Loaded %s in to Shader class");
+		displayout(D_INFO, "Loaded in to Shader obj");
 }
 
 // compiling shader
-void LShader::CompileShader(GLenum shadertype) {
-	this->ShaderId = glCreateShader(shadertype);
+void LShader::LCompileShader(GLenum Lshadertype = GL_FRAGMENT_SHADER) {
 
-	std::string LShaderString  = "";
+	LShaderId = glCreateShader(Lshadertype);
 
-	for (auto& i : this->shaderFile.Data) {
+	
+	std::string LShaderString;
+
+
+	for (auto& i : shaderFile.Data) {
 		LShaderString += i;
 	}
 
-	glShaderSource(this->ShaderId, 1, (const char**)(LShaderString.c_str()), NULL); // turn the shader string to something that opengl can read and compile
+	glShaderSource(this->LShaderId, 1, (const char**)(LShaderString.c_str()), NULL); // turn the shader string to something that opengl can read and compile
 
 	// Compile the Shader
-	glCompileShader(ShaderId);
+	glCompileShader(LShaderId);
 
 	// Check the shader for those errors
 	int DidShaderCompile = GL_FALSE;
-	glGetShaderiv(ShaderId, GL_COMPILE_STATUS, &DidShaderCompile);
+	glGetShaderiv(LShaderId, GL_COMPILE_STATUS, &DidShaderCompile);
 
 	if (DidShaderCompile == GL_TRUE) {
-		displayout(D_ERROR, "Unable to compile shader %d!\nFileName: %s", this->ShaderId, this->shaderFile.Name);
+		displayout(D_ERROR, "Unable to compile shader %d!\nFileName: %s", this->LShaderId, this->shaderFile.Name);
 		PrintCompileLog();
-		glDeleteShader(this->ShaderId);
-		ShaderId = NULL; // unload the shader id number so the shader is no longer in mem
+		glDeleteShader(this->LShaderId);
+		LShaderId = NULL; // unload the shader id number so the shader is no longer in mem
 	}
 	else {
-		displayout(D_INFO, "Compiled Shader! ID:%d", this->ShaderId);
+		displayout(D_INFO, "Compiled Shader! ID:%d", this->LShaderId);
 	}
 
-	this->ProgramId = glCreateProgram();
+	this->LProgramId = glCreateProgram();
 
-	glAttachShader(this->ProgramId, this->ShaderId);
-	glLinkProgram(this->ProgramId);
+	glAttachShader(this->LProgramId, this->LShaderId);
+	glLinkProgram(this->LProgramId);
 
 	GLint programSuccess = GL_TRUE;
-	glGetProgramiv(this->ProgramId, GL_LINK_STATUS, &programSuccess);
+	glGetProgramiv(this->LProgramId, GL_LINK_STATUS, &programSuccess);
 	if (programSuccess != GL_TRUE)
 	{
-		printf("Error linking program %d!\n", this->ProgramId);
+		printf("Error linking program %d!\n", this->LProgramId);
 		PrintProgramLog();
-		glDeleteProgram(this->ProgramId);
-		this->ProgramId = 0;
+		glDeleteProgram(this->LProgramId);
+		this->LProgramId = 0;
 	}
 }
 
 // misc
-void LShader::Bind() {
-	glUseProgram(this->ShaderId);
+void LShader::LBind() {
+	glUseProgram(this->LShaderId);
 	GLenum error = glGetError();
 	if (error != GL_NO_ERROR)
 	{
-		displayout(D_ERROR, "Error binding shader! %d\n", this->ShaderId);
+		displayout(D_ERROR, "Error binding shader! %d\n", this->LShaderId);
 		PrintCompileLog();
 	}
 
 }
 
-void LShader::UnBind() {
+void LShader::LUnBind() {
 	//Use default program
 	glUseProgram(NULL);
 }
 
-int LShader::GetProgramID() {
-	return this->ShaderId;
+int LShader::LGetProgramID() {
+	return this->LShaderId;
 }
 
 // Printing the log
 void LShader::PrintProgramLog() {
 	// Make sure name is shader
-		if (glIsProgram(this->ProgramId))
+		if (glIsProgram(this->LProgramId))
 		{
 			//Program log length
 			int infoLogLength = 0;
 			int maxLength = infoLogLength;
 
 			//Get info string length
-			glGetProgramiv(this->ProgramId, GL_INFO_LOG_LENGTH, &maxLength);
+			glGetProgramiv(this->LProgramId, GL_INFO_LOG_LENGTH, &maxLength);
 
 			//Allocate string
 			char* infoLog = new char[maxLength];
 
 			//Get info log
-			glGetProgramInfoLog(this->ProgramId, maxLength, &infoLogLength, infoLog);
+			glGetProgramInfoLog(this->LProgramId, maxLength, &infoLogLength, infoLog);
 			if (infoLogLength > 0)
 			{
 				//Print Log
@@ -140,26 +142,26 @@ void LShader::PrintProgramLog() {
 		}
 		else
 		{
-			displayout(D_WARNING, "Name %d is not a program\n", this->ProgramId);
+			displayout(D_WARNING, "Name %d is not a program\n", this->LProgramId);
 		}
 }
 
 void LShader::PrintCompileLog() {
 	//Make sure name is shader
-	if (glIsShader(this->ShaderId))
+	if (glIsShader(this->LShaderId))
 	{
 		//Shader log length
 		int infoLogLength = 0;
 		int maxLength = infoLogLength;
 
 		//Get info string length
-		glGetShaderiv(this->ShaderId, GL_INFO_LOG_LENGTH, &maxLength);
+		glGetShaderiv(this->LShaderId, GL_INFO_LOG_LENGTH, &maxLength);
 
 		//Allocate string
 		char* infoLog = new char[maxLength];
 
 		//Get info log
-		glGetShaderInfoLog(this->ShaderId, maxLength, &infoLogLength, infoLog);
+		glGetShaderInfoLog(this->LShaderId, maxLength, &infoLogLength, infoLog);
 		if (infoLogLength > 0)
 		{
 			//Print Log
@@ -171,6 +173,6 @@ void LShader::PrintCompileLog() {
 	}
 	else
 	{
-		displayout(D_WARNING, "Name %d is not a shader\n", this->ShaderId);
+		displayout(D_WARNING, "Name %d is not a shader\n", this->LShaderId);
 	}
 }

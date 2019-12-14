@@ -96,7 +96,7 @@ inline void displayout(int msgType, const char* text, ...)
 
 }
 
-// Defining Helpful macros
+// Defining Helpful macros 
 #define FOR(varname, iterations) for (int varname = 0; varname < iterations; varname++)
 #define xstr(x) str(x)
 #define str(x) #x

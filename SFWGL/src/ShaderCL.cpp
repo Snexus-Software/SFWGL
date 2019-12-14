@@ -23,11 +23,5 @@ Copyright (C) 2019  Snexus Software
 
 // ============== MAIN LIB PACKAGING ABSTRACTION LAYER ============== \\
 
-#include "Template.h"
-#include "SFWGL.h"
-#include "Vector.h"
-#include "SFMath.h"
-#include "Debug.h"
-#include "Camera.h"
-#include "Display.h"
-#include "LShader.h"
+#include "ShaderCL.h"
+
