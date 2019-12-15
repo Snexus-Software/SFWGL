@@ -26,6 +26,9 @@ Copyright (C) 2019  Snexus Software
 #include "Template.h"
 #include <stdarg.h>
 
+#define EOR printf("[DEBUGING USE ONLY] PASSED LINE: %d. ERROR NOT BEFORE PRINT!\n", __LINE__)
+
+
 #ifndef _STD
 #define _STD ::std::
 #endif // !_STD

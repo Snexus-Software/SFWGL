@@ -28,16 +28,21 @@ Copyright (C) 2019  Snexus Software
 Camera::Camera(Vector3 Pos, Vector3 up) {
     this->position = Pos;
     this->up = up;
+
+    vtShader = "vertexshader.glsl";
+    vtShader.compile(GL_VERTEX_SHADER);
+    vtShader.bind();
+
 }
 
-Camera::Camera(Vector3 Pos, Vector3 Target, Vector3 up) {
-    this->position = Pos;
-    this->target = Target;
-    this->up = up;
-}
+
 
 Camera::Camera() {
     this->up = { 0, 1.0f, 0 };
+    vtShader = "vertexshader.glsl";
+    vtShader.compile(GL_VERTEX_SHADER);
+    vtShader.bind();
+
 }
 
 void Camera::Set(Vector3 Pos) {
@@ -78,6 +83,8 @@ void Camera::CameraCalculate() {
     cameraAngle.y = -asinf((float)fabs(dy) / distance.y); // Camera angle in plane XY (0 aligned with X, move positive CW)
 
     this->playerEyesPosition = this->position.y;
+
+    
 }
 
 void Camera::ChangeKeys(int Forward, int Left, int Backwards, int Right) {
@@ -87,7 +94,7 @@ void Camera::ChangeKeys(int Forward, int Left, int Backwards, int Right) {
     this->Keys[3] = Right;
 }
 
-void Camera::Update(Display display) {
+void Camera::Update(Display &display) {
 
     static int swingCounter = 0;    // Used for 1st person swinging movement
     static Vector2 previousMousePosition = { 0.0f, 0.0f };
@@ -150,5 +157,19 @@ void Camera::Update(Display display) {
 
     this->up.x = sinf(swingCounter / (CAMERA_FIRST_PERSON_STEP_TRIGONOMETRIC_DIVIDER * 2)) / CAMERA_FIRST_PERSON_WAVING_DIVIDER;
     this->up.z = -sinf(swingCounter / (CAMERA_FIRST_PERSON_STEP_TRIGONOMETRIC_DIVIDER * 2)) / CAMERA_FIRST_PERSON_WAVING_DIVIDER;
+    
+    Projection = glm::perspective(fov, display.Ratio(), 0.001f, 1000.0f);
+    glm::vec3 Pos = glm::vec3(this->position.x, this->position.y, this->position.z);
+    glm::vec3 Target = glm::vec3(this->target.x, this->target.y, this->target.z);
+    glm::vec3 Up = glm::vec3(this->up.x, this->up.y, this->up.z);
+    CamLook = this->Projection * glm::lookAt(Pos, Target, Up);
+    position << "Pos";
+    target << "Target";
+
+    int posid = glGetUniformLocation(vtShader.ProgramCLId, "camera");
+    glUniform4fv(posid, 1, &CamLook[0][0]);
+
+    
+
 
 }

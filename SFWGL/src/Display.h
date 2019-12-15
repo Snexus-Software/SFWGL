@@ -51,7 +51,7 @@ public:
     // basic drawing
     void StartDrawing();
     void EndDrawing();
-  
+    float Ratio();
 
     // Get commands 
     bool WindowShouldClose();

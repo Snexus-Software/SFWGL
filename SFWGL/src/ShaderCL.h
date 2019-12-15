@@ -33,8 +33,8 @@ enum UniformType {
     UNIFORM_1I,
     UNIFORM_VER2,
     UNIFORM_VER3,
-    UNIFORM_VER4
-
+    UNIFORM_VER4,
+    UNIFORM_MAT4
 };
 
 class ShaderCL
@@ -43,13 +43,15 @@ private:
 
     FILEw file;
     GLuint ShaderCLId = { 0 };
-    GLuint ProgramCLId = { 0 };
 
 
 public:
+    GLuint ProgramCLId = { 0 };
+
 
     // loading the shader
     ShaderCL(std::string);
+    ShaderCL();
     void load(std::string);
 
     // compile the shader
@@ -60,7 +62,7 @@ public:
     void SendVar(std::string, UniformType, Vector4);
 
 
-
+    void operator = (std::string);
 
 
 };

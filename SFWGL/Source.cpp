@@ -82,10 +82,13 @@ int main() {
 	ShaderCL FragmentShader("shader.glsl");
 	FragmentShader.compile(GL_FRAGMENT_SHADER);
 
+    Camera cam;
+
 	while (!display.WindowShouldClose()) {
 		display.StartDrawing();
 		glClearColor(0, 0, 0, 255); 
-
+        cam.Update(display);
+        
 		FragmentShader.bind();
         FragmentShader.SendVar("Color", UNIFORM_VER3, { 1.0, 1.0, 0.0 });
         FragmentShader.SendVar("time", UNIFORM_1F, { float(glfwGetTime()) });

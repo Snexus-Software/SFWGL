@@ -25,15 +25,18 @@ Copyright (C) 2019  Snexus Software
 
 #include "ShaderCL.h"
 
-#define EOR printf("[DEBUGING USE ONLY] PASSED LINE: %d. ERROR NOT BEFORE PRINT!\n", __LINE__)
 
 void ShaderCL::load(std::string Filename) {
     this->file = GetF(Filename);
-
+   
 }
 
 ShaderCL::ShaderCL(std::string Filename) {
     this->load(Filename);
+}
+
+ShaderCL::ShaderCL() {
+
 }
 
 
@@ -59,9 +62,50 @@ void ShaderCL::compile(GLenum ShaderCLType) {
 
     if (ShaderCompileState != GL_TRUE) {
         displayout(D_ERROR, "Shader Could not be compiled, Try importing a diffrent file!");
+        
+        char infoLog[512];
+        glGetShaderInfoLog(ShaderCLId, 512, NULL, infoLog);
+       
+        std::string Errorstring;
+
+        for (int i = 0; i < 512; i++) {
+            if (i != 0)
+                Errorstring += infoLog[i];
+        }
+
+        std::string line;
+
+        for (int i = 0; i < 512; i++) {
+            if (infoLog[i] == '(') {
+                for (int f = i + 1; f < 512; f++) {
+                    if (infoLog[f] != ')') {
+                        line += infoLog[f];
+                    }
+                    else {
+                        break;
+                    }
+                }
+                break;
+            }
+        }
+
+        for (int i = 0; i < file.Data.size(); i++) {
+            if (stoi(line) == i + 1) {
+                file.Data[i].pop_back();
+                std::string Mystr = infoLog;
+                Mystr.pop_back();
+               
+                displayout(D_ERROR, "%d: %s  //%s", i + 1, file.Data[i].c_str(), Mystr.c_str() );
+            }
+            else 
+                displayout(D_LOG, "  %d: %s", i+1, file.Data[i].c_str());
+        }
+
         ShaderCLId = 0;
         return; // stop the loading/compiling
     }
+
+    
     
     ProgramCLId = glCreateProgram();
 
@@ -80,7 +124,7 @@ void ShaderCL::compile(GLenum ShaderCLType) {
     displayout(D_INFO, "Shader Compiled!");
 
 
-    return;
+   
 }
 
 void ShaderCL::bind() {
@@ -114,4 +158,8 @@ void ShaderCL::SendVar(std::string VarName, UniformType type, Vector4 data) {
     default:
         break;
     }
+}
+
+void ShaderCL::operator =(std::string filename) {
+    load(filename);
 }

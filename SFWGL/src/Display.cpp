@@ -33,6 +33,15 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 	glViewport(0, 0, width, height);
 }
 
+float Display::Ratio() {
+	int w = this->Size.x, h = this->Size.y;
+	glfwGetFramebufferSize(__window, &w, &h);
+
+
+	float ratio = (float)w / (float)h;
+	return ratio;
+}
+
 void Display::InitDisplay() {
 	if (!glfwInit()) {
 		exit(EXIT_FAILURE);
@@ -51,6 +60,15 @@ void Display::InitDisplay() {
 	glfwSwapInterval(1);
 	glfwSetFramebufferSizeCallback(__window, framebuffer_size_callback);
 
+	std::cout << R"(    _   ____________  ___       ______            _          
+   / | / / ____/ __ \/   |     / ____/___  ____ _(_)___  ___ 
+  /  |/ / __/ / / / / /| |    / __/ / __ \/ __ `/ / __ \/ _ \
+ / /|  / /___/ /_/ / ___ |   / /___/ / / / /_/ / / / / /  __/
+/_/ |_/_____/\____/_/  |_|  /_____/_/ /_/\__, /_/_/ /_/\___/ 
+                                        /____/                (c) 2019-2020 Gavin Kellam
+---------------------------------------------------------------
+		)" << std::endl;
+
 	displayout(D_INFO, "Display Ready!");
 
 	glewInit();
@@ -66,6 +84,7 @@ Display::Display(int SizeX, int SizeY, const char* WindowName = "NULL NAME") {
 Display::~Display() {
 	glfwDestroyWindow(__window);
 	glfwTerminate();
+	displayout(D_WARNING, "Display Deconstructed!");
 }
 
 // basic drawing

@@ -27,6 +27,7 @@ Copyright (C) 2019  Snexus Software
 #include "Vector.h"
 #include "Debug.h"
 #include "Display.h"
+#include "ShaderCL.h"
 
 #ifndef CAMERA_H_SNEXUS
 #define CAMERA_H_SNEXUS
@@ -89,7 +90,9 @@ private:
 	float cameraTargetDistance = 0.0f;								         // Camera distance from position to target 
 	float playerEyesPosition = 1.85f;										 // Default player eyes position from ground (in meters) 
 	Vector2 cameraAngle = { 0.0f, 0.0f };									 // Camera angle in plane XZ
-
+	glm::mat4 Projection;
+	ShaderCL vtShader;
+	glm::mat4 CamLook;
 
 	// Sets calculates the camera and its angle for the given input values
 	void CameraCalculate();
@@ -99,11 +102,11 @@ public:
 	Vector3 position;
 	Vector3 target;
 	Vector3 up;
+	float fov = 60;
 	
 
 	// initializers for basic construction
 	Camera(Vector3 Pos, Vector3 up);
-	Camera(Vector3 Pos, Vector3 Target, Vector3 up);
 	Camera();
 	~Camera();
 
@@ -113,7 +116,7 @@ public:
 	void Set(Vector3 Pos, Vector3 Target, Vector3 up);
 
 	//updating
-	void Update(Display display);
+	void Update(Display &display);
 	void Look();
 
 	// remaping keys
