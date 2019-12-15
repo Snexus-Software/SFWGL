@@ -25,3 +25,93 @@ Copyright (C) 2019  Snexus Software
 
 #include "ShaderCL.h"
 
+#define EOR printf("[DEBUGING USE ONLY] PASSED LINE: %d. ERROR NOT BEFORE PRINT!\n", __LINE__)
+
+void ShaderCL::load(std::string Filename) {
+    this->file = GetF(Filename);
+
+}
+
+ShaderCL::ShaderCL(std::string Filename) {
+    this->load(Filename);
+}
+
+
+void ShaderCL::compile(GLenum ShaderCLType) {
+    std::string SCS = ""; // This is the Shader Construction String or SCS
+
+    ShaderCLId = glCreateShader(ShaderCLType);
+
+
+    for (auto& i : file.Data) {
+        SCS += i + "\n"; // Add Each line to the SCS for the loading of the shader
+    }
+   
+    const char* ShaderOLF = SCS.c_str();
+
+    glShaderSource(ShaderCLId, 1, &ShaderOLF, NULL); // Turn the shader string into a opengl shader
+    
+    glCompileShader(ShaderCLId); // compile the shader to the gpu
+   
+    // Check the shader state
+    int ShaderCompileState = 0;
+    glGetShaderiv(ShaderCLId, GL_COMPILE_STATUS, &ShaderCompileState);
+
+    if (ShaderCompileState != GL_TRUE) {
+        displayout(D_ERROR, "Shader Could not be compiled, Try importing a diffrent file!");
+        ShaderCLId = 0;
+        return; // stop the loading/compiling
+    }
+    
+    ProgramCLId = glCreateProgram();
+
+    glAttachShader(ProgramCLId, ShaderCLId);
+    glLinkProgram(ProgramCLId);
+
+    int ProgramCompileState = 0;
+    glGetProgramiv(ProgramCLId, GL_LINK_STATUS, &ProgramCompileState);
+    if (ProgramCompileState != GL_TRUE) {
+        displayout(D_ERROR, "Program for shader could not be created!");
+
+        ProgramCLId = 0;
+        ShaderCLId = 0;
+    }
+
+    displayout(D_INFO, "Shader Compiled!");
+
+
+    return;
+}
+
+void ShaderCL::bind() {
+    glUseProgram(ProgramCLId);
+}
+
+void ShaderCL::unbind() {
+    glUseProgram(0);
+}
+
+void ShaderCL::SendVar(std::string VarName, UniformType type, Vector4 data) {
+    int vertexShaderLocation = glGetUniformLocation(ProgramCLId, VarName.c_str());
+    
+    switch (type)
+    {
+    case UNIFORM_1F:
+        glUniform1f(vertexShaderLocation, data.x);
+        break;
+    case UNIFORM_1I:
+        glUniform1i(vertexShaderLocation, int(data.x));
+        break;
+    case UNIFORM_VER2:
+        glUniform2f(vertexShaderLocation, data.x, data.y);
+        break;
+    case UNIFORM_VER3:
+        glUniform3f(vertexShaderLocation, data.x, data.y, data.z);
+        break;
+    case UNIFORM_VER4:
+        glUniform4f(vertexShaderLocation, data.x, data.y, data.z, data.w);
+        break;
+    default:
+        break;
+    }
+}

@@ -37,7 +37,7 @@ private:
     std::chrono::steady_clock::time_point LastFrameTime = std::chrono::high_resolution_clock::now();
     std::chrono::steady_clock::time_point NewFrameTime = std::chrono::high_resolution_clock::now();
     void InitDisplay();
-
+    //void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 public:
     Vector2 Size;
     GLFWwindow* __window;

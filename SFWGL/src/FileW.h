@@ -38,15 +38,15 @@ using  std::endl;
 
 
 
-typedef struct File {
-    _STD vector <_STD string> Data = {};
+typedef struct FILEw {
+    _STD vector <_STD string> Data;
     int FileSize = 0;
     _STD string Name = "";
-} File;
+} FILEw;
 
 
 // Gets the file from a file name and file path
-File GetF(_STD string FileName) {
+FILEw GetF(_STD string FileName) {
     _STD ifstream OPS(FileName.c_str(), std::ios::binary);
     if (OPS.is_open()) {
         _STD streampos begin, end; //starts the begin and end markers for the file size
@@ -63,7 +63,7 @@ File GetF(_STD string FileName) {
         OPS.seekg(0, std::ios::end); //This gets file's start and end markers
         end = OPS.tellg();       //----------* End of file
 
-        int size = (end - begin); // this size var stores the final size
+        int size = returningVect.size(); // this size var stores the final size
 
         OPS.close(); // closes the file
 
@@ -77,7 +77,7 @@ File GetF(_STD string FileName) {
 
 
 // writes a file to a file path
-bool WriteF(File file) {
+bool WriteF(FILEw file) {
     _STD ofstream OPW(file.Name.c_str(), std::ios::binary);
 
     if (OPW.is_open()) {
@@ -95,7 +95,7 @@ bool WriteF(File file) {
 }
 
 // Disp File
-void DisplayFile(File file, int line = -1) {
+void DisplayFile(FILEw file, int line = -1) {
     displayout(D_LOG, ("Name of File: " + file.Name).c_str());
     displayout(D_LOG, ("Size of File: " + _STD to_string(file.FileSize)).c_str());
     int Indexline = 0;
@@ -116,7 +116,7 @@ void DisplayFile(File file, int line = -1) {
 }
 
 // checks if a word is in a file or if the file name matches the keyword
-bool FindIn(File Inputfile, std::string Keyword) {
+bool FindIn(FILEw Inputfile, std::string Keyword) {
     if (Inputfile.Name != "") {
         for (auto i : Inputfile.Data) {
             if (i.find(Keyword) != std::string::npos) {
@@ -134,8 +134,8 @@ bool FindIn(File Inputfile, std::string Keyword) {
 }
 
 // create a new file
-File Fcreate(std::string file, std::vector<std::string> InitiingData) {
-    File Tempfile; // making the file and setting each file part insures that the find with be null
+FILEw Fcreate(std::string file, std::vector<std::string> InitiingData) {
+    FILEw Tempfile; // making the file and setting each file part insures that the find with be null
     Tempfile.Data = InitiingData; // setting file data ---
     Tempfile.FileSize = InitiingData.size();
     Tempfile.Name = file;
@@ -144,7 +144,7 @@ File Fcreate(std::string file, std::vector<std::string> InitiingData) {
 }
 
 // Del File
-void DelF(File& file) {
+void DelF(FILEw& file) {
 #ifdef __linux   
     system(_STD string("rm -r " + file.Name).c_str());
 #elif _WIN32   
@@ -152,7 +152,7 @@ void DelF(File& file) {
 #endif
     displayout(D_WARNING, ("File: " + file.Name + " Was Deleted!").c_str());
 
-    File f;
+    FILEw f;
     file = f;
 }
 

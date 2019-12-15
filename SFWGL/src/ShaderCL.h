@@ -25,19 +25,26 @@ Copyright (C) 2019  Snexus Software
 
 #include "Template.h"
 #include "FileW.h"
+#include "Debug.h"
+#include "Vector.h"
 
+enum UniformType {
+    UNIFORM_1F = 1,
+    UNIFORM_1I,
+    UNIFORM_VER2,
+    UNIFORM_VER3,
+    UNIFORM_VER4
+
+};
 
 class ShaderCL
 {
 private:
 
-    File file;
+    FILEw file;
+    GLuint ShaderCLId = { 0 };
+    GLuint ProgramCLId = { 0 };
 
-    float ShaderCLId = 0;
-    float ShaderCLId = 0;
-
-    void LogProgram();
-    void LogShader();
 
 public:
 
@@ -46,10 +53,11 @@ public:
     void load(std::string);
 
     // compile the shader
-    void compile();
+    virtual void compile(GLenum);
     void bind();
     void unbind();
     
+    void SendVar(std::string, UniformType, Vector4);
 
 
 

@@ -26,6 +26,13 @@ Copyright (C) 2019  Snexus Software
 #include "Display.h"
 #include "Debug.h"
 
+void framebuffer_size_callback(GLFWwindow* window, int width, int height)
+{
+	// make sure the viewport matches the new window dimensions; note that width and 
+	// height will be significantly larger than specified on retina displays.
+	glViewport(0, 0, width, height);
+}
+
 void Display::InitDisplay() {
 	if (!glfwInit()) {
 		exit(EXIT_FAILURE);
@@ -42,8 +49,11 @@ void Display::InitDisplay() {
 
 	glfwMakeContextCurrent(__window);
 	glfwSwapInterval(1);
+	glfwSetFramebufferSizeCallback(__window, framebuffer_size_callback);
 
 	displayout(D_INFO, "Display Ready!");
+
+	glewInit();
 }
 
  // initing
@@ -107,3 +117,4 @@ int Display::GetFPS() {
 	std::chrono::duration<double, std::milli> ep = this->NewFrameTime - this->LastFrameTime;
 	return int(1000.f / float(ep.count()));
 }
+

@@ -57,13 +57,6 @@ void Camera::Set(Vector3 Pos, Vector3 Target, Vector3 up) {
 
 Camera::~Camera() {
     displayout(D_WARNING, "Camera Deconstructed!");
-
-    SF_FREE(position);
-    SF_FREE(up);
-    SF_FREE(target);
-    SF_FREE(cameraTargetDistance);
-    SF_FREE(Keys);
-    SF_FREE(cameraAngle);
 }
 
 void Camera::CameraCalculate() {

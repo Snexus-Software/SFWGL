@@ -34,7 +34,7 @@ class LShader
 {
 private:
 	// Shader file location and file contents 
-	File shaderFile;
+	FILEw shaderFile;
 
 
 public:
